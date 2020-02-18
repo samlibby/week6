@@ -1,4 +1,6 @@
 <!-- Reference: ArcGIS Tutorials - Creating a Starter App - Link: https://developers.arcgis.com/labs/javascript/create-a-starter-app/ -->
+<!-- Reference: ArcGIS Tutorials - Add Layers to a Map - Link: https://developers.arcgis.com/labs/javascript/add-layers-to-a-map/ -->
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -18,8 +20,9 @@
      <script>
   require([
       "esri/Map",
-      "esri/views/MapView"
-    ], function(Map, MapView) {
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer"
+    ], function(Map, MapView, FeatureLayer) {
 
     var map = new Map({
       basemap: "topo-vector"
@@ -28,9 +31,14 @@
     var view = new MapView({
       container: "viewDiv",
       map: map,
-      center: [-118.80500, 34.02700], // longitude, latitude
-      zoom: 13
+      center: [-106.415457, 58.309123], // longitude, latitude - middle of Canada
+      zoom: 7
     });
+    
+    var canadamapLayer = new FeatureLayer({
+      url: "https://luna.flemingcollege.ca:6443/arcgis/rest/services/Geom99/slibbyCanadaPro/MapServer/0"
+    });
+    map.add(canadamapLayer);
   });
   </script>
   </head>
