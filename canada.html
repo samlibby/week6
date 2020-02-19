@@ -1,6 +1,7 @@
 <!-- Reference: ArcGIS Tutorials - Creating a Starter App - Link: https://developers.arcgis.com/labs/javascript/create-a-starter-app/ -->
 <!-- Reference: ArcGIS Tutorials - Add Layers to a Map - Link: https://developers.arcgis.com/labs/javascript/add-layers-to-a-map/ -->
 <!-- Reference: ArcGIS Tutorials - Get Map Coordidnates - Link: https://developers.arcgis.com/labs/javascript/get-map-coordinates/ -->
+<!-- Reference: ArcGIS Tutorials - Find Places - Link: https://developers.arcgis.com/labs/javascript/find-places/ -->
 
 <!DOCTYPE html>
 <html>
@@ -23,8 +24,10 @@
       "esri/Map",
       "esri/views/MapView",
       "esri/layers/FeatureLayer",
-      "esri/widgets/CoordinateConversion"
-    ], function(Map, MapView, FeatureLayer, CoordinateConversion) {
+      "esri/widgets/CoordinateConversion",
+      "esri/tasks/Locator",
+      "esri/Graphic"
+    ], function(Map, MapView, FeatureLayer, CoordinateConversion, Locator, Graphic) {
 
     var map = new Map({
       basemap: "topo-vector"
@@ -71,7 +74,82 @@
      });
 
      view.ui.add(coordinateConversionWidget, "bottom-right");
+    
+    //** finding parks in Canada **//
+    var places = ["Parks and Outdoors"];
 
+    var select = document.createElement("select","");
+    select.setAttribute("class", "esri-widget esri-select");
+    select.setAttribute("style", "width: 175px; font-family: Avenir Next W00; font-size: 1em");
+    places.forEach(function(p){
+      var option = document.createElement("option");
+      option.value = p;
+      option.innerHTML = p;
+      select.appendChild(option);
+    });
+
+    view.ui.add(select, "bottom-left");
+    
+    //** adding a new locator and setting it to the ArcGIS World Geocoder URL **//
+    var locator = new Locator({
+        url: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+     });
+
+    // Find places and add them to the map
+    function findPlaces(category, pt) {
+      locator.addressToLocations({
+        location: pt,
+        categories: [category],
+        maxLocations: 25,
+        outFields: ["Place_addr", "PlaceName"]
+      })
+      .then(function(results) {
+        // Clear the map
+        view.popup.close();
+        view.graphics.removeAll();
+        // Add graphics
+        results.forEach(function(result){
+          view.graphics.add(
+            new Graphic({
+              attributes: result.attributes,
+              geometry: result.location,
+              symbol: {
+               type: "simple-marker",
+               color: "#000000",
+               size: "12px",
+               outline: {
+                 color: "#ffffff",
+                 width: "2px"
+               }
+
+              },
+              popupTemplate: {
+                title: "{PlaceName}",
+                content: "{Place_addr}"
+              }
+           }));
+        });
+      });
+    }
+    
+       // Search for places in center of map when the app loads
+    findPlaces(select.value, view.center);
+
+    // Listen for category changes and find places
+    select.addEventListener('change', function (event) {
+      findPlaces(event.target.value, view.center);
+    });
+
+    // Listen for mouse clicks and find places
+    view.on("click", function(event){
+      view.hitTest(event.screenPoint)
+        .then(function(response){
+          if (response.results.length < 2) { // If graphic is not clicked, find places
+            findPlaces(select.options[select.selectedIndex].text, event.mapPoint);
+          }
+      })
+    });
+    
   });
   </script>
   </head>
