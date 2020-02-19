@@ -1,5 +1,6 @@
 <!-- Reference: ArcGIS Tutorials - Creating a Starter App - Link: https://developers.arcgis.com/labs/javascript/create-a-starter-app/ -->
 <!-- Reference: ArcGIS Tutorials - Add Layers to a Map - Link: https://developers.arcgis.com/labs/javascript/add-layers-to-a-map/ -->
+<!-- Reference: ArcGIS Tutorials - Get Map Cooridnates - Link: https://developers.arcgis.com/labs/javascript/get-map-coordinates/ -->
 
 <!DOCTYPE html>
 <html>
@@ -39,6 +40,31 @@
       url: "https://luna.flemingcollege.ca:6443/arcgis/rest/services/Geom99/slibbyCanadaPro/MapServer/0"
     });
     map.add(canadamapLayer);
+    
+    var coordsWidget = document.createElement("div");
+    coordsWidget.id = "coordsWidget";
+    coordsWidget.className = "esri-widget esri-component";
+    coordsWidget.style.padding = "7px 15px 5px";
+
+    view.ui.add(coordsWidget, "bottom-right");
+
+    //*** Updates the inner html of the widget and displays the current properties ***//
+    function showCoordinates(pt) {
+      var coords = "Lat/Lon " + pt.latitude.toFixed(3) + " " + pt.longitude.toFixed(3) +
+          " | Scale 1:" + Math.round(view.scale * 1) / 1 +
+          " | Zoom " + view.zoom;
+      coordsWidget.innerHTML = coords;
+    }
+    
+    //*** handlers that watch for a pointer - toMap converts from screen coordinates to map cooridnates ***//
+    view.watch("stationary", function(isStationary) {
+      showCoordinates(view.center);
+    });
+
+    view.on("pointer-move", function(evt) {
+      showCoordinates(view.toMap({ x: evt.x, y: evt.y }));
+    });
+    
   });
   </script>
   </head>
