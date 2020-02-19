@@ -100,7 +100,7 @@
       locator.addressToLocations({
         location: pt,
         categories: [category],
-        maxLocations: 25,
+        maxLocations: 500,
         outFields: ["Place_addr", "PlaceName"]
       })
       .then(function(results) {
